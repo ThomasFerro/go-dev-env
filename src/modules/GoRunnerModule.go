@@ -5,12 +5,14 @@ import (
 	"log"
 	"os/exec"
 
+	"github.com/go-dev-env/standards"
 	"github.com/go-dev-env/triggers"
 )
 
 // GoRunnerModule A module responsible for running go code
 type GoRunnerModule struct {
-	trigger triggers.Trigger
+	trigger   triggers.Trigger
+	debouncer standards.Debouncer
 }
 
 func (module GoRunnerModule) manageTriggerNotifications(triggerNotification chan bool) {
@@ -20,6 +22,35 @@ func (module GoRunnerModule) manageTriggerNotifications(triggerNotification chan
 			module.Execute()
 		}
 	}
+}
+
+func (module GoRunnerModule) runCommand() error {
+	// TODO : Manage path
+	cmd := exec.Command("go", "run", "../sandbox/main.go")
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Printf("Go runner connecting to the command's standard output: %v", err)
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		log.Printf("Go runner command failed: %v", err)
+		return err
+	}
+
+	in := bufio.NewScanner(stdout)
+
+	for in.Scan() {
+		log.Printf("Output from the executed program: %v", in.Text())
+	}
+	if err := in.Err(); err != nil {
+		log.Printf("Go runner command failed: %s", err)
+		return err
+	}
+
+	log.Printf("Go runner Command execution finished")
+	return nil
 }
 
 // Init Initialize the go runner module and his trigger
@@ -36,32 +67,13 @@ func (module GoRunnerModule) Init() {
 
 // Execute execute the go program
 func (module GoRunnerModule) Execute() {
-	// TODO : Extract the technical complexity
-	// TODO : Manage debounce
-	// TODO : Manage path
-	// TODO : Replace log.Fatal with a clean error management
-	log.Println("Executing the go runner module's action")
-	cmd := exec.Command("go", "run", "../sandbox/main.go")
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-
-	in := bufio.NewScanner(stdout)
-
-	for in.Scan() {
-		log.Printf("Output from the executed program: %v", in.Text())
-	}
-	if err := in.Err(); err != nil {
-		log.Printf("Go runner command failed: %s", err)
-	}
-
-	log.Printf("Go runner Command execution finished")
+	log.Println("Go runner module's action execution requested")
+	module.debouncer.Debounce(
+		func() {
+			log.Println("Executing the go runner module's action")
+			module.runCommand()
+		},
+	)
 }
 
 // Trigger The module's trigger
@@ -71,5 +83,8 @@ func (module GoRunnerModule) Trigger() triggers.Trigger {
 
 // NewGoRunnerModule Create a new go runner module with the specified trigger
 func NewGoRunnerModule(t triggers.Trigger) Module {
-	return GoRunnerModule{t}
+	return GoRunnerModule{
+		trigger:   t,
+		debouncer: standards.NewDebouncer(500 * 1E6),
+	}
 }

@@ -48,6 +48,7 @@ func walkdir(path string, info os.FileInfo, err error, watcher *fsnotify.Watcher
 
 func initWatchers() (*fsnotify.Watcher, error) {
 	watchersChan, _ := fsnotify.NewWatcher()
+	// TODO : Manage path
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		dirPath, walkErr := walkdir(path, info, err, watchersChan)
 		if dirPath != "" {
