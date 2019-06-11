@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/go-dev-env/standards"
 )
 
 func getDirElements(path string) []string {
@@ -80,7 +81,26 @@ func directoryCreated(op fsnotify.Op, path string) bool {
 	return fileInfo.IsDir()
 }
 
-func startWatchers(fileChangedChan chan bool) {
+// FileWatcherTrigger Triggered by a change in any file in the directory
+type FileWatcherTrigger struct {
+	FileChangedChan           chan bool
+	debouncedNotifyFileChange func()
+}
+
+// Init Initialize the watcher
+func (trigger *FileWatcherTrigger) Init() chan bool {
+	log.Println("Initializing a file watcher trigger")
+	trigger.FileChangedChan = make(chan bool)
+	trigger.debouncedNotifyFileChange = standards.Debounce(func() {
+		trigger.FileChangedChan <- true
+	}, 500)
+
+	go trigger.startWatchers()
+
+	return trigger.FileChangedChan
+}
+
+func (trigger FileWatcherTrigger) startWatchers() {
 	watchersChan, err := initWatchers()
 	defer watchersChan.Close()
 
@@ -99,28 +119,13 @@ func startWatchers(fileChangedChan chan bool) {
 				log.Printf("Adding a watcher in the dir : %v\n", event.Name)
 				watchersChan.Add(event.Name)
 			}
-			fileChangedChan <- true
+			trigger.debouncedNotifyFileChange()
 
 		// watch for errors
 		case err := <-watchersChan.Errors:
 			log.Println("ERROR", err)
 		}
 	}
-}
-
-// FileWatcherTrigger Triggered by a change in any file in the directory
-type FileWatcherTrigger struct {
-	FileChangedChan chan bool
-}
-
-// Init Initialize the watcher
-func (trigger *FileWatcherTrigger) Init() chan bool {
-	log.Println("Initializing a file watcher trigger")
-	trigger.FileChangedChan = make(chan bool)
-
-	go startWatchers(trigger.FileChangedChan)
-
-	return trigger.FileChangedChan
 }
 
 // NewFileWatcherTrigger Create a new file watcher trigger

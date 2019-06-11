@@ -5,14 +5,12 @@ import (
 	"log"
 	"os/exec"
 
-	"github.com/go-dev-env/standards"
 	"github.com/go-dev-env/triggers"
 )
 
 // GoRunnerModule A module responsible for running go code
 type GoRunnerModule struct {
-	trigger   triggers.Trigger
-	debouncer standards.Debouncer
+	trigger triggers.Trigger
 }
 
 func (module GoRunnerModule) manageTriggerNotifications(triggerNotification chan bool) {
@@ -67,13 +65,8 @@ func (module GoRunnerModule) Init() {
 
 // Execute execute the go program
 func (module GoRunnerModule) Execute() {
-	log.Println("Go runner module's action execution requested")
-	module.debouncer.Debounce(
-		func() {
-			log.Println("Executing the go runner module's action")
-			module.runCommand()
-		},
-	)
+	log.Println("Executing the go runner module's action")
+	module.runCommand()
 }
 
 // Trigger The module's trigger
@@ -84,7 +77,6 @@ func (module GoRunnerModule) Trigger() triggers.Trigger {
 // NewGoRunnerModule Create a new go runner module with the specified trigger
 func NewGoRunnerModule(t triggers.Trigger) Module {
 	return GoRunnerModule{
-		trigger:   t,
-		debouncer: standards.NewDebouncer(500 * 1E6),
+		trigger: t,
 	}
 }

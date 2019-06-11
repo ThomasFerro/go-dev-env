@@ -5,48 +5,31 @@ import (
 	"time"
 )
 
-// Debouncer A debouncer, managing a method's call
-type Debouncer interface {
-	Debounce(function func())
-}
+func Debounce(function func(), executeAfter int) func() {
+	debounceTriggered := make(chan bool)
 
-type defaultDebouncer struct {
-	executeAfter int
-	events       chan func()
-}
-
-func (d defaultDebouncer) init() {
-	duration := time.Duration(d.executeAfter)
-	var function func()
+	log.Println("Initiate the debounced method")
+	duration := time.Duration(executeAfter) * time.Millisecond
 	t := time.NewTimer(duration)
 	t.Stop()
-	for {
-		select {
-		case newFunction := <-d.events:
-			log.Println("Received a debouncer event with a new function")
-			t.Reset(duration)
-			function = newFunction
-		case <-t.C:
-			called := function != nil
-			log.Printf("Debouncer function called ? %v\n", called)
-			if called {
-				function()
+
+	startDebounceLoop := func() {
+		for {
+			select {
+			case <-debounceTriggered:
+				log.Println("Received a debouncer event, reset the timer")
+				t.Reset(duration)
+			case <-t.C:
+				log.Println("Executing the debounced method")
+				go function()
 			}
 		}
 	}
-}
 
-func (d defaultDebouncer) Debounce(function func()) {
-	d.events <- function
-}
+	go startDebounceLoop()
 
-// NewDebouncer Create a new debouncer
-func NewDebouncer(executeAfter int) Debouncer {
-	events := make(chan func())
-	debouncer := defaultDebouncer{
-		executeAfter,
-		events,
+	return func() {
+		log.Println("RETURNED FUNCTION CALLED")
+		debounceTriggered <- true
 	}
-	go debouncer.init()
-	return debouncer
 }
