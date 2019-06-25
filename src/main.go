@@ -1,17 +1,16 @@
 package main
 
 import (
-	"log"
-
 	"github.com/go-dev-env/triggers"
-	"github.com/go-dev-env/modules"
+	"github.com/go-dev-env/modules/golang"
 )
 
 func main() {
-	log.Printf("Test : Init ?");
+	// TODO : Se baser sur la config / les paramètres de la ligne de commande
+	// TODO : Module Docker
 	trigger := triggers.NewFileWatcherTrigger()
 
-	module := modules.NewGoRunnerModule(trigger)
+	module := golang.NewGoRunnerModule(trigger)
 	module.Init()
 
 	for {}

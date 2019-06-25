@@ -1,12 +1,15 @@
-package modules
+package golang
 
 import (
 	"bufio"
 	"log"
 	"os/exec"
 
+	"github.com/go-dev-env/modules"
 	"github.com/go-dev-env/triggers"
 )
+
+// TODO : Faire un GoModule avec une commande en paramètre pour pouvoir mutualiser le GoRunner et le GoTester
 
 // GoRunnerModule A module responsible for running go code
 type GoRunnerModule struct {
@@ -75,7 +78,7 @@ func (module GoRunnerModule) Trigger() triggers.Trigger {
 }
 
 // NewGoRunnerModule Create a new go runner module with the specified trigger
-func NewGoRunnerModule(t triggers.Trigger) Module {
+func NewGoRunnerModule(t triggers.Trigger) modules.Module {
 	return GoRunnerModule{
 		trigger: t,
 	}
