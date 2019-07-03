@@ -7,10 +7,13 @@ import (
 
 func main() {
 	// TODO : Se baser sur la config / les paramètres de la ligne de commande
-	// TODO : Module Docker
-	trigger := triggers.NewFileWatcherTrigger()
+	// TODO : Modules Docker test / run
+	// TODO : Module go test
+	path := "../sandbox"
+	trigger := triggers.NewFileWatcherTrigger(path)
 
-	module := golang.NewGoRunnerModule(trigger)
+	// TODO : Manage path
+	module := golang.NewGoRunnerModule(path, trigger)
 	module.Init()
 
 	for {}

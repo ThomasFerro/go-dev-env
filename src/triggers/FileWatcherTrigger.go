@@ -47,10 +47,9 @@ func walkdir(path string, info os.FileInfo, err error, watcher *fsnotify.Watcher
 	return "", nil
 }
 
-func initWatchers() (*fsnotify.Watcher, error) {
+func initWatchers(path string) (*fsnotify.Watcher, error) {
 	watchersChan, _ := fsnotify.NewWatcher()
-	// TODO : Manage path
-	err := filepath.Walk("../sandbox", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		dirPath, walkErr := walkdir(path, info, err, watchersChan)
 		if dirPath != "" {
 			log.Printf("Adding watcher on dir: %q\n", path)
@@ -85,6 +84,7 @@ func directoryCreated(op fsnotify.Op, path string) bool {
 type FileWatcherTrigger struct {
 	FileChangedChan           chan bool
 	debouncedNotifyFileChange func()
+	path                      string
 }
 
 // Init Initialize the watcher
@@ -101,7 +101,7 @@ func (trigger *FileWatcherTrigger) Init() chan bool {
 }
 
 func (trigger FileWatcherTrigger) startWatchers() {
-	watchersChan, err := initWatchers()
+	watchersChan, err := initWatchers(trigger.path)
 	defer watchersChan.Close()
 
 	if err != nil {
@@ -129,8 +129,10 @@ func (trigger FileWatcherTrigger) startWatchers() {
 }
 
 // NewFileWatcherTrigger Create a new file watcher trigger
-func NewFileWatcherTrigger() *FileWatcherTrigger {
+func NewFileWatcherTrigger(path string) *FileWatcherTrigger {
 	log.Println("Creating a new file watcher trigger")
 
-	return &FileWatcherTrigger{}
+	return &FileWatcherTrigger{
+		path: path,
+	}
 }
