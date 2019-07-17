@@ -20,6 +20,6 @@ FROM scratch
 
 WORKDIR /root
 
-COPY --from=buildr /dist .
+COPY --from=builder /dist .
 
 CMD [ "./go-app" ]
