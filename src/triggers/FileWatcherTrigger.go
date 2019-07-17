@@ -119,8 +119,11 @@ func (trigger FileWatcherTrigger) startWatchers() {
 				log.Printf("Adding a watcher in the dir : %v\n", event.Name)
 				watchersChan.Add(event.Name)
 			}
-			trigger.debouncedNotifyFileChange()
 
+			if event.Op == fsnotify.Create || event.Op == fsnotify.Write || event.Op == fsnotify.Rename {
+
+				trigger.debouncedNotifyFileChange()
+			}
 		// watch for errors
 		case err := <-watchersChan.Errors:
 			log.Println("ERROR", err)
