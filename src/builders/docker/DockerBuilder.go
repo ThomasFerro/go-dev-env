@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"log"
 	"os/exec"
+	"regexp"
 
 	"github.com/go-dev-env/builders"
 )
@@ -31,16 +32,30 @@ func getStderrScanner(cmd *exec.Cmd) (*bufio.Scanner, error) {
 	return bufio.NewScanner(stderr), nil
 }
 
-// TODO : How to return the results ?
+func extractArtifact(output string) builders.ArtifactPath {
+	log.Println("Extracting artifact name")
+	r := regexp.MustCompile("Successfully tagged (.*)")
+	submatches := r.FindStringSubmatch(output)
+
+	if len(submatches) > 1 {
+		log.Printf("Artifact name %v successfully extracted", submatches[1])
+		return builders.ArtifactPath(submatches[1])
+	}
+
+	log.Println("Could not find any artifact name")
+	return ""
+}
+
 func (d Builder) execute(commandName string, commandArgs ...string) (builders.ArtifactPath, error) {
 	args := append([]string{commandName}, commandArgs...)
 	cmd := exec.Command("docker", args...)
 	output, err := cmd.CombinedOutput()
+	log.Printf("Docker command output: %v", string(output))
 	if err != nil {
 		log.Printf("Docker command error: %v", err)
+		return "", err
 	}
-	log.Printf("Docker command output: %v", string(output))
-	return "", err
+	return extractArtifact(string(output)), err
 }
 
 // Build Build the project artifact as a Docker image
