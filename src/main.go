@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/go-dev-env/triggers"
-	"github.com/go-dev-env/modules/golang"
+	"github.com/go-dev-env/modules"
 )
 
 func main() {
@@ -12,8 +12,7 @@ func main() {
 	path := "../sandbox"
 	trigger := triggers.NewFileWatcherTrigger(path)
 
-	// TODO : Manage path
-	module := golang.NewGoRunnerModule(path, trigger)
+	module := modules.NewWorkflowModule(path, trigger)
 	module.Init()
 
 	for {}
