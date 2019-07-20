@@ -49,6 +49,7 @@ func extractArtifact(output string) builders.ArtifactPath {
 func (d Builder) execute(commandName string, commandArgs ...string) (builders.ArtifactPath, error) {
 	args := append([]string{commandName}, commandArgs...)
 	cmd := exec.Command("docker", args...)
+	// TODO : Quand même passer par les pipes pour ne pas avoir l'effet "rien ne se passe" pendant les builds longs
 	output, err := cmd.CombinedOutput()
 	log.Printf("Docker command output: %v", string(output))
 	if err != nil {
@@ -60,6 +61,7 @@ func (d Builder) execute(commandName string, commandArgs ...string) (builders.Ar
 
 // Build Build the project artifact as a Docker image
 func (d Builder) Build(contextPath string) (builders.ArtifactPath, error) {
+	// TODO : Params ?
 	return d.execute("build", "-t", "toto", contextPath)
 }
 

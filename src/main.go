@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/go-dev-env/triggers"
-	"github.com/go-dev-env/modules"
+	"github.com/go-dev-env/workflows"
 	"github.com/go-dev-env/builders/docker"
 )
 
@@ -22,8 +22,8 @@ func main() {
 	trigger := triggers.NewFileWatcherTrigger(path)
 	builder := docker.NewBuilder()
 
-	module := modules.NewWorkflowModule(path, trigger, builder)
-	module.Init()
+	workflow := workflows.NewBuildWorkflow(path, trigger, builder)
+	workflow.Init()
 
 	for {}
 }
