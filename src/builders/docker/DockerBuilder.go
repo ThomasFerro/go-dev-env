@@ -10,7 +10,9 @@ import (
 )
 
 // Builder A Docker builder
-type Builder struct{}
+type Builder struct {
+	artifactName string
+}
 
 func getStdoutScanner(cmd *exec.Cmd) (*bufio.Scanner, error) {
 	stdout, err := cmd.StdoutPipe()
@@ -61,11 +63,12 @@ func (d Builder) execute(commandName string, commandArgs ...string) (builders.Ar
 
 // Build Build the project artifact as a Docker image
 func (d Builder) Build(contextPath string) (builders.ArtifactPath, error) {
-	// TODO : Params ?
-	return d.execute("build", "-t", "toto", contextPath)
+	return d.execute("build", "-t", d.artifactName, contextPath)
 }
 
 // NewBuilder Create a new Docker builder
-func NewBuilder() builders.Builder {
-	return &Builder{}
+func NewBuilder(artifactName string) builders.Builder {
+	return &Builder{
+		artifactName,
+	}
 }
